@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hollow Cylinder Clock Calculator</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap");
+
+    :root {
+      --bg: #08111e;
+      --bg-soft: #0f1c31;
+      --card: linear-gradient(180deg, rgba(20, 33, 55, 0.97) 0%, rgba(13, 24, 42, 0.98) 100%);
+      --text: #ecf2ff;
+      --muted: #9db0cf;
+      --accent: #1ed6a8;
+      --accent-strong: #14c698;
+      --line: rgba(147, 176, 219, 0.22);
+      --warn: #f3a64a;
+      --error: #ff7676;
+      --input-bg: rgba(7, 14, 26, 0.72);
+      --chip: rgba(34, 52, 82, 0.62);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(170deg, #000000 0%, #0c0c0c 42%, #1a1a1a 100%);
+      color: var(--text);
+      padding: 30px 24px 34px;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 45px rgba(2, 8, 18, 0.52);
+      position: relative;
+      overflow: hidden;
+      animation: fade-up 340ms ease-out;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(30, 214, 168, 0) 0%, rgba(30, 214, 168, 0.95) 55%, rgba(30, 214, 168, 0) 100%);
+      pointer-events: none;
+    }
+
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 2.1vw, 2.2rem);
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .form-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 7px;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d4e1f6;
+    }
+
+    .label-with-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .diameter-icon {
+      width: 30px;
+      height: 30px;
+      display: inline-block;
+      vertical-align: middle;
+      color: #87a2c8;
+      opacity: 0.92;
+    }
+
+    .diameter-icon circle {
+      stroke: #87a2c8;
+    }
+
+    .diameter-icon line {
+      stroke: var(--accent);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 13px;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      font-size: 0.96rem;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: border-color 130ms ease, box-shadow 130ms ease, background 130ms ease;
+    }
+
+    input::placeholder {
+      color: #8ea2c2;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: rgba(30, 214, 168, 0.75);
+      box-shadow: 0 0 0 3px rgba(30, 214, 168, 0.18);
+      background: rgba(9, 17, 32, 0.92);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: #06211b;
+      padding: 11px 16px;
+      border-radius: 10px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(20, 198, 152, 0.22);
+      transition: transform 130ms ease, filter 130ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    button.secondary {
+      background: linear-gradient(180deg, rgba(59, 79, 114, 0.88) 0%, rgba(48, 67, 102, 0.9) 100%);
+      color: #e6eefc;
+      box-shadow: 0 8px 18px rgba(6, 10, 20, 0.26);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .message {
+      margin-top: 11px;
+      font-size: 0.93rem;
+      padding: 9px 11px;
+      border-radius: 9px;
+      background: var(--chip);
+      border: 1px solid var(--line);
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .message.warn { color: var(--warn); border-color: rgba(243, 166, 74, 0.45); }
+    .message.error { color: var(--error); border-color: rgba(255, 118, 118, 0.55); }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px 12px;
+      margin-top: 14px;
+      font-size: 0.92rem;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(7, 14, 26, 0.55);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    thead th {
+      background: rgba(23, 37, 60, 0.88);
+      color: #dae7fb;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-size: 0.79rem;
+      font-weight: 700;
+    }
+
+    tbody td {
+      background: rgba(6, 13, 25, 0.56);
+    }
+
+    tbody tr:nth-child(even) td {
+      background: rgba(12, 20, 35, 0.64);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 15, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 30;
+    }
+
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(980px, 100%);
+      max-height: 92vh;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(20, 33, 55, 0.98) 0%, rgba(13, 24, 42, 0.99) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 24px 54px rgba(0, 0, 0, 0.45);
+    }
+
+    .modal-head {
+      margin-top: 0;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .diagram-wrap {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #f8fbff;
+      min-height: 680px;
+    }
+
+    .diagram-wrap svg {
+      width: 100%;
+      height: 760px;
+      display: block;
+    }
+
+    @media (max-width: 980px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Hollow Cylinder Clock Calculator</h1>
+      <p class="subtitle">Use ID or OD measurements to calculate clock positions.</p>
+
+      <div class="form-grid">
+        <div>
+          <label for="innerDiameter" class="label-with-icon">
+            <span>Inner Diameter (ID)</span>
+            <svg class="diameter-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="#64748b" stroke-width="1.8"></circle>
+              <circle cx="12" cy="12" r="5" fill="none" stroke="#64748b" stroke-width="1.8"></circle>
+              <line x1="7" y1="12" x2="17" y2="12" stroke="#0f766e" stroke-width="1.8"></line>
+            </svg>
+          </label>
+          <input id="innerDiameter" type="text" />
+        </div>
+        <div>
+          <label for="outerDiameter" class="label-with-icon">
+            <span>Outer Diameter (OD)</span>
+            <svg class="diameter-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" fill="none" stroke="#64748b" stroke-width="1.8"></circle>
+              <circle cx="12" cy="12" r="5" fill="none" stroke="#64748b" stroke-width="1.8"></circle>
+              <line x1="3" y1="12" x2="21" y2="12" stroke="#0f766e" stroke-width="1.8"></line>
+            </svg>
+          </label>
+          <input id="outerDiameter" type="text" />
+        </div>
+        <div>
+          <label for="inputUnit">Input unit</label>
+          <select id="inputUnit">
+            <option value="in" selected>inches (in)</option>
+            <option value="ft">feet (ft)</option>
+            <option value="mm">millimeters (mm)</option>
+            <option value="cm">centimeters (cm)</option>
+            <option value="m">meters (m)</option>
+            <option value="ftin">feet + inches (tape)</option>
+          </select>
+        </div>
+        <div>
+          <label for="markBasis">Marking basis</label>
+          <select id="markBasis">
+            <option value="inner" selected>Inner diameter</option>
+            <option value="outer">Outer diameter</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <button id="diagramBtn" class="secondary" disabled>Show Diagram</button>
+      </div>
+
+      <div id="message" class="message" style="display: none;" hidden></div>
+      <div id="summary" class="summary"></div>
+
+      <div class="table-wrap">
+        <table id="resultTable" hidden>
+          <thead>
+            <tr>
+              <th>Clock Hour</th>
+              <th>Tape Mark (ft-in)</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="diagramModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card">
+      <div class="row modal-head">
+        <div class="modal-title">2D Hollow Cylinder Clock Layout</div>
+        <button id="closeDiagramBtn" class="secondary" type="button">Close</button>
+      </div>
+      <div id="diagramContent" class="diagram-wrap"></div>
+    </div>
+  </div>
+
+  <script>
+    const PI = Math.PI;
+    const UNIT_TO_INCHES = {
+      in: 1,
+      ft: 12,
+      mm: 1 / 25.4,
+      cm: 1 / 2.54,
+      m: 39.37007874015748,
+      ftin: 1
+    };
+    const DECIMALS = 3;
+
+    let lastRows = [];
+    let lastMeta = null;
+    let lastDiagramSvg = "";
+
+    function s(id) {
+      return document.getElementById(id).value;
+    }
+
+    function fmt(value, decimals) {
+      return Number(value).toFixed(decimals);
+    }
+
+    function gcd(a, b) {
+      let x = Math.abs(a);
+      let y = Math.abs(b);
+      while (y !== 0) {
+        const t = y;
+        y = x % y;
+        x = t;
+      }
+      return x || 1;
+    }
+
+    function toFeetInches(totalInches, denom = 16) {
+      const totalTicks = Math.round(totalInches * denom);
+      const ticksPerFoot = 12 * denom;
+
+      const feet = Math.floor(totalTicks / ticksPerFoot);
+      const remTicks = totalTicks % ticksPerFoot;
+      const wholeInches = Math.floor(remTicks / denom);
+      const fracNumRaw = remTicks % denom;
+      const inchesDecimal = remTicks / denom;
+
+      let inchText;
+      if (fracNumRaw === 0) {
+        inchText = `${wholeInches}"`;
+      } else {
+        const div = gcd(fracNumRaw, denom);
+        const fracNum = fracNumRaw / div;
+        const fracDen = denom / div;
+        if (wholeInches === 0) {
+          inchText = `${fracNum}/${fracDen}"`;
+        } else {
+          inchText = `${wholeInches} ${fracNum}/${fracDen}"`;
+        }
+      }
+
+      return {
+        feet,
+        inchesDecimal,
+        text: `${feet}' ${inchText}`
+      };
+    }
+
+    function hourLabel(markIndex) {
+      return ((markIndex + 10) % 12) + 1;
+    }
+
+    function parseFraction(token) {
+      const match = token.match(/^([+-]?\d+)\s*\/\s*(\d+)$/);
+      if (!match) {
+        throw new Error("Invalid fraction.");
+      }
+      const numerator = Number(match[1]);
+      const denominator = Number(match[2]);
+      if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) {
+        throw new Error("Invalid fraction.");
+      }
+      return numerator / denominator;
+    }
+
+    function parseMixedNumber(text) {
+      const cleaned = text
+        .trim()
+        .replace(/,/g, " ")
+        .replace(/-/g, " ")
+        .replace(/\s+/g, " ");
+
+      if (!cleaned) {
+        return 0;
+      }
+
+      const tokens = cleaned.split(" ");
+      let total = 0;
+      for (const token of tokens) {
+        if (!token) {
+          continue;
+        }
+        if (token.includes("/")) {
+          total += parseFraction(token);
+        } else {
+          const num = Number(token);
+          if (!Number.isFinite(num)) {
+            throw new Error("Invalid number.");
+          }
+          total += num;
+        }
+      }
+      return total;
+    }
+
+    function parseTapeMeasurement(rawValue) {
+      let text = String(rawValue || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[′’]/g, "'")
+        .replace(/[″”]/g, "\"")
+        .replace(/\bfeet\b|\bfoot\b/g, "ft")
+        .replace(/\binches\b|\binch\b/g, "in")
+        .replace(/\s+/g, " ");
+
+      if (!text) {
+        throw new Error("Value is required.");
+      }
+
+      let feet = 0;
+      let inches = 0;
+      let usedMarkers = false;
+
+      const feetMatch = text.match(/([+-]?[0-9./\s-]+)\s*(?:'|\bft\b)/);
+      if (feetMatch) {
+        feet = parseMixedNumber(feetMatch[1]);
+        usedMarkers = true;
+      }
+
+      const inchesMatch = text.match(/([+-]?[0-9./\s-]+)\s*(?:"|\bin\b)/);
+      if (inchesMatch) {
+        inches = parseMixedNumber(inchesMatch[1]);
+        usedMarkers = true;
+      }
+
+      if (usedMarkers) {
+        return feet * 12 + inches;
+      }
+
+      return parseMixedNumber(text);
+    }
+
+    function parseMeasurement(rawValue, unit, label) {
+      let value;
+      if (unit === "ftin") {
+        value = parseTapeMeasurement(rawValue);
+      } else {
+        value = Number(rawValue);
+      }
+
+      if (!Number.isFinite(value)) {
+        throw new Error(`${label} must be a valid measurement.`);
+      }
+      return value;
+    }
+
+    function updateUnitHint(unit) {
+      const hint = document.getElementById("unitHint");
+      if (!hint) {
+        return;
+      }
+      if (unit === "ftin") {
+        hint.textContent = "Tape mode: use explicit feet markers, e.g. 8' 3 1/2\" or 8 ft 3 in. Inches-only is also allowed (e.g. 99.5).";
+      } else {
+        hint.textContent = "Use numeric values for the selected unit.";
+      }
+    }
+
+    function unitDisplay(unit) {
+      if (unit === "ftin") {
+        return "ft-in (tape, stored as inches)";
+      }
+      return unit;
+    }
+
+    function basisDisplay(basis) {
+      if (basis === "inner") {
+        return "Inner diameter";
+      }
+      return "Outer diameter";
+    }
+
+    function getMarkingDiameter(innerDiameter, outerDiameter, basis) {
+      if (basis === "inner") {
+        return innerDiameter;
+      }
+      return outerDiameter;
+    }
+
+    function escapeXml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    }
+
+    function buildDiagramSvg(rows, meta) {
+      const width = 960;
+      const height = 960;
+      const cx = width / 2;
+      const cy = height / 2;
+      const outerR = 280;
+      const safeOuter = Math.max(meta.outerDiameter, 0.0001);
+      const ratio = Math.max(0.15, Math.min(0.92, meta.innerDiameter / safeOuter));
+      const innerR = outerR * ratio;
+      const markingR = meta.markBasis === "inner" ? innerR : outerR;
+      const labelR = outerR + 90;
+      const hourR = innerR + ((outerR - innerR) * 0.52);
+      const basisText = basisDisplay(meta.markBasis);
+
+      const marks = rows.map((row, idx) => {
+        const angle = -Math.PI / 2 + idx * (Math.PI / 6);
+        const ux = Math.cos(angle);
+        const uy = Math.sin(angle);
+
+        const tickInner = markingR - 8;
+        const tickOuter = markingR + 12;
+        const tx1 = cx + ux * tickInner;
+        const ty1 = cy + uy * tickInner;
+        const tx2 = cx + ux * tickOuter;
+        const ty2 = cy + uy * tickOuter;
+
+        const hx = cx + ux * hourR;
+        const hy = cy + uy * hourR;
+        const lx = cx + ux * labelR;
+        const ly = cy + uy * labelR;
+        const anchor = Math.abs(lx - cx) < 10 ? "middle" : (lx > cx ? "start" : "end");
+
+        return `
+          <g>
+            <line x1="${tx1.toFixed(2)}" y1="${ty1.toFixed(2)}" x2="${tx2.toFixed(2)}" y2="${ty2.toFixed(2)}" stroke="#0f766e" stroke-width="2.2" />
+            <text x="${hx.toFixed(2)}" y="${hy.toFixed(2)}" text-anchor="middle" dominant-baseline="middle" font-size="17" font-weight="700" fill="#1f2933">${escapeXml(row.clockHour)}</text>
+            <text x="${lx.toFixed(2)}" y="${ly.toFixed(2)}" text-anchor="${anchor}" dominant-baseline="middle" font-size="14" fill="#1f2933">${escapeXml(row.clockHour)}: ${escapeXml(row.tapeText)}</text>
+          </g>
+        `;
+      }).join("");
+
+      return `
+<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="2D hollow cylinder with 12 clock positions">
+  <rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff"/>
+  <text x="${cx}" y="42" text-anchor="middle" font-size="24" font-weight="700" fill="#1f2933">Hollow Cylinder Clock Layout</text>
+  <text x="${cx}" y="70" text-anchor="middle" font-size="14" fill="#334155">Basis: ${escapeXml(basisText)} | ID: ${meta.innerDiameter.toFixed(3)} | OD: ${meta.outerDiameter.toFixed(3)}</text>
+  <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+  <circle cx="${cx}" cy="${cy}" r="${innerR.toFixed(2)}" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+  <circle cx="${cx}" cy="${cy}" r="${markingR.toFixed(2)}" fill="none" stroke="#0f766e" stroke-width="3" stroke-dasharray="8 8"/>
+  ${marks}
+</svg>`;
+    }
+
+    function openDiagramModal() {
+      const modal = document.getElementById("diagramModal");
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeDiagramModal() {
+      const modal = document.getElementById("diagramModal");
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function renderDiagram(svgText) {
+      const content = document.getElementById("diagramContent");
+      content.innerHTML = "";
+
+      const img = document.createElement("img");
+      img.alt = "2D hollow cylinder with 12 clock positions";
+      img.style.width = "100%";
+      img.style.height = "760px";
+      img.style.objectFit = "contain";
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+      img.addEventListener("error", () => {
+        content.textContent = "Unable to render diagram. Please refresh and try again.";
+      });
+
+      content.appendChild(img);
+    }
+
+    function updateInputMode(unit) {
+      const ids = ["innerDiameter", "outerDiameter"];
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (unit === "ftin") {
+          el.placeholder = "Example: 8' 3 1/2\"";
+          el.inputMode = "text";
+        } else {
+          el.placeholder = "Numeric value";
+          el.inputMode = "decimal";
+        }
+      }
+    }
+
+    function setMessage(text, kind = "") {
+      const el = document.getElementById("message");
+      if (!el) {
+        return;
+      }
+      el.textContent = text;
+      el.className = `message ${kind}`.trim();
+      if (text) {
+        el.hidden = false;
+        el.style.display = "flex";
+      } else {
+        el.hidden = true;
+        el.style.display = "none";
+      }
+    }
+
+    function buildRows(innerDiameter, unit) {
+      const innerCirc = PI * innerDiameter;
+      const byInnerStep = innerCirc / 12;
+      const unitFactor = UNIT_TO_INCHES[unit];
+
+      const rows = [];
+      for (let i = 0; i < 12; i++) {
+        const mark = i + 1;
+        const arcInner = i * byInnerStep;
+        const innerInches = arcInner * unitFactor;
+        const tape = toFeetInches(innerInches, 16);
+
+        rows.push({
+          clockHour: hourLabel(mark),
+          tapeText: tape.text,
+          tapeFeet: tape.feet
+        });
+      }
+      return rows;
+    }
+
+    function calculate() {
+      const unit = s("inputUnit");
+      const markBasis = s("markBasis");
+      const decimals = DECIMALS;
+      let innerDiameter;
+      let outerDiameter;
+      let markingDiameter;
+
+      const table = document.getElementById("resultTable");
+      const summary = document.getElementById("summary");
+      const diagramBtn = document.getElementById("diagramBtn");
+
+      try {
+        innerDiameter = parseMeasurement(s("innerDiameter"), unit, "Inner diameter");
+        outerDiameter = parseMeasurement(s("outerDiameter"), unit, "Outer diameter");
+      } catch (err) {
+        table.hidden = true;
+        summary.innerHTML = "";
+        lastRows = [];
+        lastMeta = null;
+        lastDiagramSvg = "";
+        diagramBtn.disabled = true;
+        setMessage(err instanceof Error ? err.message : "Invalid measurement format.", "error");
+        return;
+      }
+
+      if ([innerDiameter, outerDiameter].some((v) => !Number.isFinite(v) || v <= 0)) {
+        table.hidden = true;
+        summary.innerHTML = "";
+        lastRows = [];
+        lastMeta = null;
+        lastDiagramSvg = "";
+        diagramBtn.disabled = true;
+        setMessage("All measurements must be valid numbers greater than 0.", "error");
+        return;
+      }
+
+      if (outerDiameter <= innerDiameter) {
+        table.hidden = true;
+        summary.innerHTML = "";
+        lastRows = [];
+        lastMeta = null;
+        lastDiagramSvg = "";
+        diagramBtn.disabled = true;
+        setMessage("Outer diameter must be greater than inner diameter.", "error");
+        return;
+      }
+
+      try {
+        markingDiameter = getMarkingDiameter(innerDiameter, outerDiameter, markBasis);
+      } catch (err) {
+        table.hidden = true;
+        summary.innerHTML = "";
+        lastRows = [];
+        lastMeta = null;
+        lastDiagramSvg = "";
+        diagramBtn.disabled = true;
+        setMessage(err instanceof Error ? err.message : "Invalid marking basis inputs.", "error");
+        return;
+      }
+
+      const innerCirc = PI * markingDiameter;
+      setMessage("");
+
+      const spacingText = unit === "ftin"
+        ? `${toFeetInches(innerCirc / 12, 16).text} (${fmt(innerCirc / 12, decimals)} in)`
+        : `${fmt(innerCirc / 12, decimals)} ${unit}`;
+
+      summary.innerHTML = `
+        <div><strong>Marking circumference (derived):</strong> ${fmt(innerCirc, decimals)} ${unit === "ftin" ? "in" : unit}</div>
+        <div><strong>Mark spacing (C/12):</strong> ${spacingText}</div>
+      `;
+
+      const rows = buildRows(markingDiameter, unit);
+      const tbody = document.getElementById("resultBody");
+      tbody.innerHTML = "";
+
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.clockHour}</td>
+          <td>${row.tapeText}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      table.hidden = false;
+      diagramBtn.disabled = false;
+      lastRows = rows;
+      lastMeta = { innerDiameter, outerDiameter, unit, markBasis, markingDiameter };
+      lastDiagramSvg = buildDiagramSvg(rows, lastMeta);
+    }
+    document.getElementById("diagramBtn").addEventListener("click", () => {
+      if (!lastRows.length || !lastMeta) {
+        return;
+      }
+      if (!lastDiagramSvg) {
+        lastDiagramSvg = buildDiagramSvg(lastRows, lastMeta);
+      }
+      renderDiagram(lastDiagramSvg);
+      openDiagramModal();
+    });
+    document.getElementById("closeDiagramBtn").addEventListener("click", () => {
+      closeDiagramModal();
+    });
+    document.getElementById("diagramModal").addEventListener("click", (event) => {
+      if (event.target.id === "diagramModal") {
+        closeDiagramModal();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeDiagramModal();
+      }
+    });
+    document.getElementById("inputUnit").addEventListener("change", () => {
+      const unit = s("inputUnit");
+      updateUnitHint(unit);
+      updateInputMode(unit);
+      calculate();
+    });
+    document.getElementById("markBasis").addEventListener("change", calculate);
+    ["innerDiameter", "outerDiameter"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", calculate);
+    });
+
+    updateUnitHint(s("inputUnit"));
+    updateInputMode(s("inputUnit"));
+  </script>
+</body>
+</html>
